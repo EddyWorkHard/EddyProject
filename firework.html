@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        html,body{
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            background: #050414;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="ballWrapper" id="ballWrapper"></div>
+    <script src="https://www.tweenmax.com.cn/demo/minified/TweenMax.min.js"> </script>
+
+    <script>
+        window.requestAnimFrame = (function(){
+            return  window.requestAnimationFrame       ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame    ||
+                window.oRequestAnimationFrame      ||
+                window.msRequestAnimationFrame     ||
+                function(/* function */ callback, /* DOMElement */ element){
+                    window.setTimeout(callback, 1000 / 60);
+                };
+        })();
+
+        window.onload = function(){
+            var count = 0;
+            var interval = 30;
+            var ballArr = [];
+            var explodeBallArr = [];
+
+            function rander(){
+                requestAnimFrame(rander);
+
+                createBall();
+            }
+
+            /*
+                创建小球(间隔30)
+            */
+            function createBall(){
+                var leftRan = Math.random()*(document.body.clientWidth-1+1)+1;
+
+                count++;
+                if(count % interval === 0){
+                    var div_ball = document.createElement("DIV");
+                    div_ball.style.position = "absolute";
+                    div_ball.style.top = document.body.clientHeight + 'px';
+                    div_ball.style.left = leftRan + 'px';
+                    div_ball.style.width = "25px";
+                    div_ball.style.height = "25px";
+                    div_ball.style.background = getRandomColor();
+                    div_ball.style.borderRadius = "50%";
+                    div_ball.setAttribute("data-speed",(parseInt(Math.random()*10) + 1)*2);
+                    div_ball.setAttribute("data-end",parseInt(Math.random()*(document.body.clientHeight-100))+1);
+                    document.getElementsByClassName("ballWrapper")[0].append(div_ball);
+                    ballArr.push(div_ball);
+                }
+
+                ballMoveToTop();
+            }
+
+            /*
+                生成完小球后，给小球添加向上的动画
+            */
+            function ballMoveToTop() {
+                if(ballArr.length > 0){
+                    for (let i = 0; i < ballArr.length; i++) {
+                        ballArr[i].style.top = (parseInt(ballArr[i].style.top.replace('px','')) - ballArr[i].getAttribute("data-speed")) + 'px';
+                        if(parseInt(ballArr[i].style.top.replace('px','')) < ballArr[i].getAttribute("data-end")){
+                            removeBall(ballArr[i],i);
+                        }
+                    }
+                }
+            }
+
+            /*
+               移除小球
+            */
+            function removeBall(ball,id){
+                explodeSmallBall(ball);
+                document.getElementsByClassName("ballWrapper")[0].removeChild(ball);
+                ballArr.splice(id,1);
+                ball = null;
+            }
+
+            /*
+                生成爆炸小球
+            */
+            function explodeSmallBall(ball){
+                for (let i = 0; i < 50; i++) {
+                    var div_ball = document.createElement("DIV");
+                    div_ball.style.position = "absolute";
+                    div_ball.style.top = parseFloat(ball.style.top.replace('px','')) + 6.25 + 'px';
+                    div_ball.style.left = parseFloat(ball.style.left.replace('px','')) + 6.25 + 'px';
+                    div_ball.style.width = "12.5px";
+                    div_ball.style.height = "12.5px";
+                    div_ball.style.background = getRandomColor();
+                    div_ball.style.borderRadius = "50%";
+                    div_ball.setAttribute("data-explodeX",(parseInt(Math.random()*100)*2) * getRandom());
+                    div_ball.setAttribute("data-explodeY",(parseInt(Math.random()*100)*2) * getRandom());
+                    div_ball.setAttribute("data-explodeSpeed",parseInt(Math.random()*1)+1);
+                    document.getElementsByClassName("ballWrapper")[0].append(div_ball);
+                    explodeBallArr.push(div_ball);
+                }
+
+                explodeBallMoveToExplode();
+            }
+
+            /*
+                小球爆炸动画
+            */
+            function explodeBallMoveToExplode() {
+                if(explodeBallArr.length > 0){
+                    for (let i = 0; i < explodeBallArr.length; i++) {
+                        TweenMax.to(explodeBallArr[i], explodeBallArr[i].getAttribute("data-explodeSpeed"), {opacity:0,x:parseInt(explodeBallArr[i].getAttribute("data-explodeX")), y:parseInt(explodeBallArr[i].getAttribute("data-explodeY")),onComplete:function () {
+                            removeExplodeBall(explodeBallArr[i],i);
+                        }});
+                    }
+                }
+            }
+
+            /*
+                移除爆炸小球
+            */
+            function removeExplodeBall(ball,id){
+                if(ball){
+                    document.getElementsByClassName("ballWrapper")[0].removeChild(ball);
+                }
+                explodeBallArr.splice(id,1);
+                ball = null;
+            }
+
+            /*
+               随机获取正负数
+            */
+            function getRandom(){
+                return Math.random()>0.5?1:-1;
+            }
+
+            /*\
+               获取随机颜色
+            */
+            function getRandomColor(){
+
+                return "rgb(" + Math.round(Math.random() * 255) + "," + Math.round(Math.random() * 255) + ',' + Math.round(Math.random() * 10) + ')';
+            }
+
+            rander();
+        }
+    </script>
+</body>
+</html>
